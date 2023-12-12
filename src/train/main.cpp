@@ -76,15 +76,32 @@ double	costFunction(Matrix<double>& x, Matrix<double>& y, Matrix<double>& theta)
 	return 1.0 / (2.0 * m) * ((model(x, theta) - y).pow(2)).sum();
 }
 
-double	gradientDescent(Matrix<double>& x, Matrix<double>& y, Matrix<double>& theta, double alpha, int iterations) {
+
+Matrix<double>	grad(Matrix<double>& x, Matrix<double>& y, Matrix<double>& theta) {
 	double	m = y.shape().first;
-	double	j = 0.0;
+	return x.transpose().mul_mat(model(x, theta) - y) * (1.0 / m) ;
+}
+
+Matrix<double>	gradientDescent(Matrix<double>& x, Matrix<double>& y, Matrix<double>& theta, double alpha, int iterations) {
+
+	Vector<double>	cost_history(iterations, 0.0);
 
 	for (int i = 0; i < iterations; ++i) {
-		theta = theta - (alpha / m) * (x.transpose() * (model(x, theta) - y));
-		j = costFunction(x, y, theta);
+		theta.sub(grad(x, y, theta) * alpha);
+		cost_history[i] = costFunction(x, y, theta);
+		std::cout << iterations << " / " << i + 1 << " cost: " << cost_history[i] << std::endl;
 	}
-	return j;
+
+	std::cout << "model diff" << (model(x, theta) - y).pow(2) << std::endl;
+	// plt::plot(cost_history.get(), "r-");
+	// plt::show();
+	return theta;
+}
+
+double	coefDetermination(Matrix<double> y, Matrix<double> pred) {
+	double	u = ((y - pred).pow(2)).sum();
+	double	v = ((y - y.mean()).pow(2)).sum();
+	return 1 - u / v;
 }
 
 int main(int argc, char** argv) {
@@ -98,41 +115,42 @@ int main(int argc, char** argv) {
 	std::vector<double>	prices;
 
 	extractData(argv[1], kilometers, prices);
+	Vector<double>	km(kilometers);
+	double	kmNorm = km.norm();
+	km.normalize(kmNorm);
 
-	Matrix<double>	km({kilometers});
-	Matrix<double>	pr({prices});
+	Matrix<double>	X({km.get()});
+	X = X.transpose();
+	X = hstack(X, Vector<double>(km.size(), 1.0));
 
-	/*get matrix x + ones col*/
-	km = km.transpose();
-	Matrix<double>	X = hstack(km, Vector<double>(km.shape().first, 1));
-	std::cout << "X:\n" << X << std::endl;
-	/*----------------------*/
+	Vector<double>	pr(prices);
+	//double	PrNorm = pr.norm();
+	// pr.normalize(PrNorm);
+	Matrix<double>	y({pr.get()});
+	y = y.transpose();
 
-	/*get theta vector */
-	Matrix<double>	theta(2, 1, 1);
-	std::cout << "theta:\n" << theta << std::endl;
-	/*-----------------*/
+	std::cout << "X: " << X << std::endl;
+	std::cout << "y: " << y << std::endl;
 
-	/*model*/
-	Matrix<double>	modelM = model(X, theta);
-	// std::cout << "model" << modelM << std::endl;
-	/*----*/
 
-	pr = pr.transpose();
-	std::cout << "pr:\n" << pr << std::endl;
-	/*cost function*/
-	std::cout << "cost function: " << std::fixed << std::setprecision(10) << costFunction(X, pr, theta) << std::endl;
-	/*------*/
+	Matrix<double>	theta({{0.0}, {0.0}});
 
-	std::vector<double>	modelV = (modelM.transpose()).get()[0];
-	plt::plot(kilometers, modelV, "r-");
+	double	alpha = 1;
+	int		iterations = 1000;
 
-	/*display*/
-	// Affichage des points
+	Matrix<double>	theta_opt = gradientDescent(X, y, theta, alpha, iterations);
+	std::cout << "theta: " << theta_opt << std::endl;
+
+	Matrix<double>	prediction = model(X, theta_opt);
+
+	// Vector<double>	predictionE = prediction.transpose().get()[0];
+	// predictionE.unNormalize(PrNorm);
+
+	std::cout << "coefDetermination: " << coefDetermination(y, prediction) << std::endl;
+
 	plt::scatter(kilometers, prices, 15);
-
-	// Afficher le graphique
+	plt::plot(kilometers, prediction.transpose().get()[0], "r-");
 	plt::show();
-	/*------*/
+	
 	return 0;
 }

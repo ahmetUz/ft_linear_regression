@@ -1,13 +1,13 @@
 /* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Matrix.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: auzun <auzun@student.42.fr>                +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/10/10 17:06:57 by auzun             #+#    #+#             */
-/*   Updated: 2023/12/09 17:57:33 by auzun            ###   ########.fr       */
-/*                                                                            */
+/*																			*/
+/*														:::	  ::::::::   */
+/*   Matrix.hpp										 :+:	  :+:	:+:   */
+/*													+:+ +:+		 +:+	 */
+/*   By: auzun <auzun@student.42.fr>				+#+  +:+	   +#+		*/
+/*												+#+#+#+#+#+   +#+		   */
+/*   Created: 2023/10/10 17:06:57 by auzun			 #+#	#+#			 */
+/*   Updated: 2023/12/10 15:58:25 by auzun			###   ########.fr	   */
+/*																			*/
 /* ************************************************************************** */
 
 #ifndef MATRIX_HPP
@@ -89,6 +89,13 @@ class Matrix
 		}
 
 		template <typename T>
+		T	operator*(const Matrix<T>& other) const {
+			T	result = T(0);
+			result = this->dot(other);
+			return result;
+		}
+
+		template <typename T>
 		Matrix<T>	operator+(Matrix<T> m) const {
 			Matrix<T>	result(*this);
 			result.add(m);
@@ -99,6 +106,13 @@ class Matrix
 		Matrix<T>	operator-(Matrix<T> m) const {
 			Matrix<T>	result(*this);
 			result.sub(m);
+			return result;
+		}
+
+		template <typename T>
+		Matrix<T>	operator-(T m) const {
+			Matrix<T>	result(*this);
+			result.sub(Matrix<T>(this->shape().first, this->shape().second, m));
 			return result;
 		}
 
@@ -154,6 +168,41 @@ class Matrix
 			return result;
 		}
 
+		K	dot(const Matrix<K>& other) const {
+			const std::pair<int, int> shape1 = this->shape();
+			const std::pair<int, int> shape2 = other.shape();
+
+			if (shape1 != shape2) {
+				throw std::invalid_argument("Matrix dimensions are not compatible for dot product.");
+			}
+
+			K result = K(0);
+			for (int i = 0; i < shape1.first; ++i) {
+				for (int j = 0; j < shape1.second; ++j) {
+					result += (*this)[i][j] * other[i][j];
+				}
+			}
+
+			return result;
+		}
+
+		K	dot(const Vector<K>& other) const {
+			const std::pair<int, int> shape = this->shape();
+
+			if (shape.second != other.size()) {
+				throw std::invalid_argument("Matrix and vector dimensions are not compatible for dot product.");
+			}
+
+			K result = K(0);
+			for (int i = 0; i < shape.first; ++i) {
+				for (int j = 0; j < shape.second; ++j) {
+					result += (*this)[i][j] * other[j];
+				}
+			}
+
+			return result;
+		}
+
 		/*EX00 Add, Subtract and Scale*/
 		void	add(const Matrix<K> &m2) {
 			const std::pair<int, int>	m1Shape = this->shape();
@@ -179,6 +228,15 @@ class Matrix
 			}
 		}
 
+		void	sub(const K &s) {
+			const std::pair<int, int>	shape = this->shape();
+
+			for (int i = 0; i < shape.first; i++) {
+				for (int j = 0; j < shape.second; j++)
+					(*this)[i][j] -= s;
+			}
+		}
+
 		void	scl(const K &s) {
 			const std::pair<int, int>	shape = this->shape();
 
@@ -188,6 +246,15 @@ class Matrix
 			}
 		}
 		/*----------------------------*/
+
+		void	div(const K &s) {
+			const std::pair<int, int>	shape = this->shape();
+
+			for (int i = 0; i < shape.first; i++) {
+				for (int j = 0; j < shape.second; j++)
+					(*this)[i][j] /= s;
+			}
+		}
 
 		template <typename T>
 		Matrix<K>	pow(const T &nb) {
@@ -200,14 +267,23 @@ class Matrix
 			return *this;
 		}
 
+		K	mean() {
+			const std::pair<int, int>	shape = this->shape();
+			return this->sum() / (shape.first * shape.second);
+		}
+
 		/*EX07 Linear map, Matrix multiplication*/
 
 		//Vector * matrix
 		Vector<K>	mul_vec(const Vector<K>& vec) {
 			const std::pair<int, int>	shape = this->shape();
 
-			if (shape.first != vec.size())
+			if (shape.second != vec.size())
+			{
+				std::cout << "Matrix: " << shape.first << "x" << shape.second << std::endl;
+				std::cout << "Vector: " << vec.size() << std::endl;
 				throw std::invalid_argument("Matrix and vector dimensions are not compatible for multiplication.");
+			}
 			std::vector<K>	result(shape.second);
 			for (int i = 0; i < shape.first; i++) {
 				K	nb = 0;

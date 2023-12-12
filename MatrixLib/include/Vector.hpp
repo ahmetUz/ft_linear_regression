@@ -6,7 +6,7 @@
 /*   By: auzun <auzun@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/10 17:50:28 by auzun             #+#    #+#             */
-/*   Updated: 2023/12/08 17:47:20 by auzun            ###   ########.fr       */
+/*   Updated: 2023/12/12 14:51:00 by auzun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,13 @@ class Vector
 		}
 
 		template <typename T>
+		Vector<T> operator/(T scalar) const {
+			Vector<T> result(*this);
+			result.div(scalar);
+			return result;
+		}
+
+		template <typename T>
 		Vector<T>	operator+(Vector<T> m) const {
 			Vector<T>	result(*this);
 			result.add(m);
@@ -127,6 +134,21 @@ class Vector
 			const int	size = this->size();
 			for (int i = 0; i < size; i++)
 				(*this)[i] = 0;
+		}
+
+		double	sum() const {
+			double	result = 0;
+			const int	size = this->size();
+			for (int i = 0; i < size; i++)
+				result += (*this)[i];
+			return result;
+		}
+
+		void	div(const K &s) {
+			const int	vSize = this->size();
+
+			for (int i = 0; i < vSize; i++)
+				(*this)[i] /= s;
 		}
 
 		/*EX00 Add, Subtract and Scale*/
@@ -202,6 +224,18 @@ class Vector
 			return result;
 		}
 		/*----------------------------*/
+		
+		void	normalize(const K norm) {
+			if (norm == 0)
+				throw std::invalid_argument("Cannot normalize a null vector");
+			this->div(norm);
+		}
+
+		void	unNormalize(const K norm) {
+			if (norm == 0)
+				throw std::invalid_argument("Cannot normalize a null vector");
+			this->scl(norm);
+		}
 
 		/*----------------------------*/
 };
