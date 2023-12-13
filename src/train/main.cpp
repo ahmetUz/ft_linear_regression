@@ -66,6 +66,32 @@ void	extractData(const std::string& filename, std::vector<double>& kilometers, s
 	file.close();
 }
 
+void	saveThetaToFile(const Matrix<double>& theta, const std::string& filename) {
+	std::ofstream file(filename);
+
+	if (file.is_open()) {
+		for (int i = 0; i < theta.shape().first; ++i) {
+			file << theta[i][0] << std::endl;
+		}
+		std::cout << "Theta saved to file: " << filename << std::endl;
+		file.close();
+	} else {
+		std::cerr << "Error: Unable to open file for writing - " << filename << std::endl;
+	}
+}
+
+void	saveKmNormToFile(double kmNorm, const std::string& filename) {
+	std::ofstream file(filename);
+
+	if (file.is_open()) {
+		file << kmNorm << std::endl;
+		std::cout << "kmNorm saved to file: " << filename << std::endl;
+		file.close();
+	} else {
+		std::cerr << "Error: Unable to open file for writing - " << filename << std::endl;
+	}
+}
+
 Matrix<double>	model(Matrix<double>& x, Matrix<double>& theta) {
 	return x.mul_mat(theta);
 }
@@ -91,10 +117,8 @@ Matrix<double>	gradientDescent(Matrix<double>& x, Matrix<double>& y, Matrix<doub
 		cost_history[i] = costFunction(x, y, theta);
 		std::cout << iterations << " / " << i + 1 << " cost: " << cost_history[i] << std::endl;
 	}
-
-	std::cout << "model diff" << (model(x, theta) - y).pow(2) << std::endl;
-	// plt::plot(cost_history.get(), "r-");
-	// plt::show();
+	plt::plot(cost_history.get(), "r-");
+	plt::show();
 	return theta;
 }
 
@@ -104,6 +128,17 @@ double	coefDetermination(Matrix<double> y, Matrix<double> pred) {
 	return 1 - u / v;
 }
 
+double	predictPrice(double km, Matrix<double> theta, double kmNorm) {
+	double	kmNormed = km / kmNorm;
+	Matrix<double>	input({{kmNormed}, {1.0}});
+	input = input.transpose();
+
+	double	price = model(input, theta).get()[0][0];
+	return price;
+}
+
+/*f(x) = ax + b*/
+
 int main(int argc, char** argv) {
 
 	if (argc != 2) {
@@ -111,46 +146,68 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
+	/*extract data from data.csv*/
 	std::vector<double>	kilometers;
 	std::vector<double>	prices;
-
 	extractData(argv[1], kilometers, prices);
+	/*-------------------------*/
+
+
+	/*normalize kilometers*/
 	Vector<double>	km(kilometers);
 	double	kmNorm = km.norm();
+	saveKmNormToFile(kmNorm, "kmNorm.csv");
 	km.normalize(kmNorm);
+	/*--------------------*/
 
+	/*Create the X matrix with 1 cls*/
 	Matrix<double>	X({km.get()});
 	X = X.transpose();
 	X = hstack(X, Vector<double>(km.size(), 1.0));
+	/*-----------------------------*/
 
-	Vector<double>	pr(prices);
-	//double	PrNorm = pr.norm();
-	// pr.normalize(PrNorm);
-	Matrix<double>	y({pr.get()});
+	/*Create the y matrix*/
+	Matrix<double>	y({prices});
 	y = y.transpose();
+	/*-------------------*/
 
+	/*
 	std::cout << "X: " << X << std::endl;
 	std::cout << "y: " << y << std::endl;
+	*/
 
-
+	/*Create theta*/
 	Matrix<double>	theta({{0.0}, {0.0}});
+	/*-----------*/
 
+	/*learning rate*/
 	double	alpha = 1;
-	int		iterations = 1000;
+	/*-------------*/
 
+	/*number of iterations*/
+	int		iterations = 1000;
+	/*--------------------*/
+
+
+	/*get final theta*/
 	Matrix<double>	theta_opt = gradientDescent(X, y, theta, alpha, iterations);
 	std::cout << "theta: " << theta_opt << std::endl;
+	saveThetaToFile(theta_opt, "theta.csv");
+	/*---------------*/
 
+	/*get prediction model */
 	Matrix<double>	prediction = model(X, theta_opt);
+	/*--------------*/
 
-	// Vector<double>	predictionE = prediction.transpose().get()[0];
-	// predictionE.unNormalize(PrNorm);
 
 	std::cout << "coefDetermination: " << coefDetermination(y, prediction) << std::endl;
 
+	std::cout << "predictioPrice: " << predictPrice(48235, theta_opt, kmNorm) << std::endl;
+
+	/*show in graph*/
 	plt::scatter(kilometers, prices, 15);
 	plt::plot(kilometers, prediction.transpose().get()[0], "r-");
 	plt::show();
-	
+	/*-----------*/
 	return 0;
 }

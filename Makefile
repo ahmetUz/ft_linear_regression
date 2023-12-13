@@ -6,7 +6,7 @@
 #    By: auzun <auzun@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/02 02:05:03 by auzun             #+#    #+#              #
-#    Updated: 2023/12/08 15:29:11 by auzun            ###   ########.fr        #
+#    Updated: 2023/12/13 16:38:52 by auzun            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,8 @@
 #                                   TARGETS                                    #
 #==============================================================================#
 
-NAME = linear_regression
+TRAIN_NAME = linear_regression_train
+PREDICT_NAME = linear_regression_predict
 
 #==============================================================================#
 #                                   COMMANDS                                   #
@@ -50,7 +51,8 @@ MATRIXLIB_PATH = ./MatrixLib
 #                                   SOURCES                                    #
 #==============================================================================#
 
-SRC = ./src/train/main.cpp
+SRC_TRAIN = ./src/train/main.cpp
+SRC_PREDICT = ./src/predict/main.cpp
 
 #==============================================================================#
 #                                   HEADERS                                    #
@@ -63,21 +65,27 @@ INC = -std=c++11 -I./matplotlibCpp -I/usr/include/python3.10  -I${MATRIXLIB_PATH
 #                                   OBJECTS                                    #
 #==============================================================================#
 
-OBJ = $(addprefix ${OBJ_DIR}, ${SRC:.cpp=.o})
+OBJ_TRAIN = $(addprefix ${OBJ_DIR}, ${SRC_TRAIN:.cpp=.o})
+OBJ_PREDICT = $(addprefix ${OBJ_DIR}, ${SRC_PREDICT:.cpp=.o})
 
 #==============================================================================#
 #                                   MAKEFILE                                   #
 #==============================================================================#
 
-all : $(NAME)
+all : $(TRAIN_NAME) $(PREDICT_NAME)
 
 $(OBJ_DIR)%.o : $(SRC_DIR)%.cpp $(HEAD_NAME)
 	mkdir -p ${@D}
 	$(CC) $(CFLAGS) $(DFLAGS) $(INC) -c $< -o $@ -g
 
-$(NAME) : ${LIBMATRIX} $(OBJ) 
-	echo "$(YELLOW)Making $(NAME)$(END)"
-	$(CC) $(CFLAGS) $(OBJ) $(INC) -L/usr/lib/x86_64-linux-gnu -lpython3.10 -L$(MATRIXLIB_PATH)/lib -lMatrixLib -o $(NAME) -g
+$(TRAIN_NAME) : ${LIBMATRIX} $(OBJ_TRAIN)
+	echo "$(YELLOW)Making $(TRAIN_NAME)$(END)"
+	$(CC) $(CFLAGS) $(OBJ_TRAIN) $(INC) -L/usr/lib/x86_64-linux-gnu -lpython3.10 -L$(MATRIXLIB_PATH)/lib -lMatrixLib -o $(TRAIN_NAME) -g
+	echo "$(GREEN)Done$(END)"
+
+$(PREDICT_NAME) : ${LIBMATRIX} $(OBJ_PREDICT)
+	echo "$(YELLOW)Making $(PREDICT_NAME)$(END)"
+	$(CC) $(CFLAGS) $(OBJ_PREDICT) $(INC) -L/usr/lib/x86_64-linux-gnu -lpython3.10 -L$(MATRIXLIB_PATH)/lib -lMatrixLib -o $(PREDICT_NAME) -g
 	echo "$(GREEN)Done$(END)"
 
 ${LIBMATRIX}:
@@ -87,14 +95,16 @@ ${LIBMATRIX}:
 
 
 clean :
-	echo "$(PURPLE)Cleaning $(NAME)'s objects...$(END)"
+	echo "$(PURPLE)Cleaning $(TRAIN_NAME)'s objects...$(END)"
+	echo "$(PURPLE)Cleaning $(PREDICT_NAME)'s objects...$(END)"
 	$(MAKE_SILENT) fclean -C ${MATRIXLIB_PATH}
 	$(RM)r $(OBJ_DIR)
 	echo "$(GREEN)Done$(END)"
 
 fclean : clean
-	echo "$(PURPLE)Cleaning $(NAME)...$(END)"
-	$(RM) $(NAME)
+	echo "$(PURPLE)Cleaning $(TRAIN_NAME) and $(PREDICT_NAME)...$(END)"
+	$(RM) $(TRAIN_NAME)
+	$(RM) $(PREDICT_NAME)
 	echo "$(GREEN)Done$(END)"
 
 re : fclean
