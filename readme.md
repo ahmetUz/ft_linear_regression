@@ -4,7 +4,7 @@ This project aims to introduce the basic concepts of machine learning by impleme
 
 ## Overview
 
-In this project, you'll create two programs:
+In this project, i writed two programs:
 
 - **Prediction Program**: This program will predict the price of a car for a given mileage. It will prompt the user for a mileage input and return the estimated price using the linear regression model.
 
