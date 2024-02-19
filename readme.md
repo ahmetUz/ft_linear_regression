@@ -60,6 +60,18 @@ Done
 
 - Then run the predict program
 ```
-./linear_regression_predict 
+./linear_regression_predict
+Enter a mileage (type 'STOP' to exit): 5000
+Estimated price: 8391.82
+Enter a mileage (type 'STOP' to exit): 4582
+Estimated price: 8400.79
+Enter a mileage (type 'STOP' to exit): 32200
+Estimated price: 7808.56
+Enter a mileage (type 'STOP' to exit): 100000
+Estimated price: 6354.69
+Enter a mileage (type 'STOP' to exit): 200000
+Estimated price: 4210.34
+Enter a mileage (type 'STOP' to exit): STOP
+Exiting the program.
 ```
 
