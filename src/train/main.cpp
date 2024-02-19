@@ -115,7 +115,7 @@ Matrix<double>	gradientDescent(Matrix<double>& x, Matrix<double>& y, Matrix<doub
 	for (int i = 0; i < iterations; ++i) {
 		theta.sub(grad(x, y, theta) * alpha);
 		cost_history[i] = costFunction(x, y, theta);
-		std::cout << iterations << " / " << i + 1 << " cost: " << cost_history[i] << std::endl;
+		// std::cout << iterations << " / " << i + 1 << " cost: " << cost_history[i] << std::endl;
 	}
 	plt::plot(cost_history.get(), "r-");
 	plt::show();
@@ -200,9 +200,9 @@ int main(int argc, char** argv) {
 	/*--------------*/
 
 
-	std::cout << "coefDetermination: " << coefDetermination(y, prediction) << std::endl;
+	// std::cout << "coefDetermination: " << coefDetermination(y, prediction) << std::endl;
 
-	std::cout << "predictioPrice: " << predictPrice(48235, theta_opt, kmNorm) << std::endl;
+	// std::cout << "predictioPrice: " << predictPrice(48235, theta_opt, kmNorm) << std::endl;
 
 	/*show in graph*/
 	plt::scatter(kilometers, prices, 15);
